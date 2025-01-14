@@ -3,10 +3,12 @@ import sys
 import os
 import shutil
 
+from alive_progress import alive_it
+
 from patchman_parsing import *
 from patchman_config import *
 
-
+# Helper classes to read and write to config files
 pcfg = PatchmanConfig()
 wcfg = WorkspaceConfig()
 db   = PatchDatabase()
@@ -37,8 +39,25 @@ def save():
 
 
 def help():
-    print("USAGE: patchman")
-
+    print("USAGE: patchman <command> [args]")
+    print("\nPatchman Commands")
+    print("< > indicates a required argument, [ ] indicates an optional argument")
+    print("\nhelp (-h, --help)")
+    print("\tDisplays this usage dialog.")
+    print("\ninit <workspace_directory>")
+    print("\tCreates a new workspace to track changes in <workspace_directory>, which can be an absolute or relative path.")
+    print("\nworkspace [workspace_name]")
+    print("\tdefault          : displays the current active workspace.")
+    print("\t[workspace_name] : switches to workspace [workspace_name].")
+    print("\nconfig <file_extensions>")
+    print("\tTells patchman which <file_extensions> to track. Generally these are binary files, but any file type is supported.")
+    print("\t<file_extensions> is a list of comma-separated values (i.e. '.jar,.class,.out,.bin')")
+    print("\nnew <patch_name>")
+    print("\tGenerates a new folder called <patch_name> to contain a copy of all modified tracked files since the last `config` or `update`.")
+    print("\nupdate [patch_name]")
+    print("\tdefault          : updates the active patch folder with a copy of all modified tracked files since the last `new` or `update`.")
+    print("\t[patch_name]     : switches the active patch to [patch_name] before updating.")
+    print(f"\nPatchman configuration directory: {CONFIG_DIR}")
 
 def init(flags):
     if (flags[CMD_INIT][1] is None):
@@ -77,12 +96,15 @@ def workspace(flags):
     active_ws = pcfg.get_active_workspace()
     args = flags[CMD_WORKSPACE][1]
     
+    # No arguments means "display active workspace"
     if args is None and active_ws != "":
         print(active_ws)
     elif args is None and active_ws == "":
         print("No active workspace.")
+    
+    # Providing an argument switches the workspace of the same name
     else:
-        ws_name = args[0]
+        ws_name = args
         ws_dir_found = False
         for p in CONFIG_DIR.iterdir():
             if p.name == ws_name:
@@ -97,12 +119,19 @@ def workspace(flags):
             print(f"ERROR -> Workspace Not Found: The workspace {ws_name} does not exist.")
 
 
+def get_progress_bar(user_ws_dir):
+    # Provide a nice progress bar UI
+    # TODO: allow this to be disabled if the user doesn't have the package.
+    return alive_it(user_ws_dir.rglob('*', recurse_symlinks=True))
+
+
 def check_for_updated_files(user_ws_dir, patch_dir):
     # Collect all tracked files that were modified
     num_modified = 0
     user_ws_dir = Path(user_ws_dir)
     file_extensions = wcfg.get_tracked_file_extensions()
-    for p in user_ws_dir.rglob('*', recurse_symlinks=True):
+    bar = get_progress_bar(user_ws_dir)
+    for p in bar:
         if p.suffix in file_extensions and db.has_file_updated(p.name, os.path.getmtime(p)):
             db.update(p.name, os.path.getmtime(p))
             shutil.copy(str(p), str(patch_dir / p.name), follow_symlinks=True)
@@ -139,6 +168,20 @@ def new(flags):
 
 
 def update(flags):
+    # Change patch before update if the user specifies a patch name
+    if flags[CMD_NEW][1] is not None:
+        patch_name = flags[CMD_NEW][1]
+        found_patch = False
+        active_ws = pcfg.get_active_workspace()
+        for p in (CONFIG_DIR / active_ws / PATCH_DIR).iterdir():
+            if p.name == patch_name:
+                wcfg.set_active_patch(patch_name)
+                found_patch = True
+        
+        if not found_patch:
+            print(f"ERROR -> Patch Not Found: No patch exists with the name {patch_name}.")
+            return
+    
     user_ws_dir = wcfg.get_absolute_user_directory()
     if user_ws_dir is None:
         print("FATAL ERROR -> User workspace directory not stored in config file.")
@@ -181,7 +224,8 @@ def config(flags):
     # each file type we're tracking.
     num_tracking = 0
     user_ws_dir = Path(user_ws_dir)
-    for p in user_ws_dir.rglob('*', recurse_symlinks=True):
+    bar = get_progress_bar(user_ws_dir)
+    for p in bar:
         if p.suffix in file_extensions:
             db.update(p.name, os.path.getmtime(p))
             num_tracking += 1
@@ -215,8 +259,4 @@ def main():
 
 
 if __name__ == "__main__":
-    #main()
-
-    load()
-    update(FLAGS)
-    save()
+    main()
