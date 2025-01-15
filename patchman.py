@@ -3,7 +3,7 @@ import sys
 import os
 import shutil
 
-from alive_progress import alive_it
+#from alive_progress import alive_it
 
 from patchman_parsing import *
 from patchman_config import *
@@ -122,7 +122,7 @@ def workspace(flags):
 def get_progress_bar(user_ws_dir):
     # Provide a nice progress bar UI
     # TODO: allow this to be disabled if the user doesn't have the package.
-    return alive_it(user_ws_dir.rglob('*', recurse_symlinks=True))
+    return user_ws_dir.rglob('*', recurse_symlinks=True)
 
 
 def check_for_updated_files(user_ws_dir, patch_dir):
