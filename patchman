@@ -1,2 +1,4 @@
 #!/bin/bash
-python /home/lukas/Projects/patchman/patchman.py "$@"
+SCRIPTDIR="$(which patchman)"
+SCRIPTDIR="$(dirname $SCRIPTDIR)"
+python "$SCRIPTDIR/patchman.py" "$@"
