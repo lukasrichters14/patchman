@@ -25,11 +25,11 @@ Patchman is a *very* simplistic CLI *patch man*ager. Without dedicated developme
 
         patchman new <patch_name>
 
-Currently, patchman only supports tracking and storing user-configured files, but some of the planned features are listed below.
+## Planned Features
 
 - Deliver modified files to user-defined targets:
 
-    - For simple projects, copy all modified files to a directory specified by user.
+    - For simple projects, copy all modified files to a directory specified by the user.
 
     - For more complicated projects, accept a configuration file (preferably YAML) specifying deployment targets for individual files or groups of files. Should also be able to specify most (all?) of the behavior through the CLI.
 
