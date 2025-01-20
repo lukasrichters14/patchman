@@ -3,10 +3,15 @@ import sys
 import os
 import shutil
 
-#from alive_progress import alive_it
-
 from patchman_parsing import *
 from patchman_config import *
+
+try:
+    from alive_progress import alive_it
+    MOD_ALIVE_PROG_LOADED = True
+except:
+    MOD_ALIVE_PROG_LOADED = False
+
 
 # Helper classes to read and write to config files
 pcfg = PatchmanConfig()
@@ -119,10 +124,19 @@ def workspace(flags):
             print(f"ERROR -> Workspace Not Found: The workspace {ws_name} does not exist.")
 
 
+def simple_progress(iter):
+    states = ("[|]", "[/]", "[-]", "[\\]", "[|]", "[/]", "[-]", "[\\]")
+    for i, e in enumerate(iter):
+        print(states[i % len(states)], end="\r")
+        yield e
+
+
 def get_progress_bar(user_ws_dir):
+    file_iter = user_ws_dir.rglob('*', recurse_symlinks=True)
     # Provide a nice progress bar UI
-    # TODO: allow this to be disabled if the user doesn't have the package.
-    return user_ws_dir.rglob('*', recurse_symlinks=True)
+    if MOD_ALIVE_PROG_LOADED:
+        return alive_it(file_iter, bar='smooth', spinner=None)
+    return simple_progress(file_iter)
 
 
 def check_for_updated_files(user_ws_dir, patch_dir):
