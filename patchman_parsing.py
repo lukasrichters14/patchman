@@ -21,7 +21,7 @@ FLAGS = {
     CMD_CONFIG    : (False, None),  # Allows the user to configure the active workspace
 }
 
-def parse(argv: list):
+def parse(argv):
     
     # No commands, just program name
     if len(argv) == 1:
