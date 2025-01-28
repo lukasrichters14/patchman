@@ -5,6 +5,7 @@ CMD_UPDATE    = 'update'
 CMD_NEW       = 'new'
 CMD_ERROR     = 'error'
 CMD_CONFIG    = 'config'
+CMD_PATCH     = 'patch'
 
 ALIASES = {
     '-h'     : CMD_HELP,
@@ -19,6 +20,7 @@ FLAGS = {
     CMD_NEW       : (False, None),  # Create new patch and update with new changes
     CMD_ERROR     : (False, None),  # Indicates the parser encountered an error and other flags should be ignored
     CMD_CONFIG    : (False, None),  # Allows the user to configure the active workspace
+    CMD_PATCH     : (False, None),  # Deploy modified files to a given target
 }
 
 def parse(argv):

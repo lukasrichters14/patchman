@@ -183,8 +183,8 @@ def new(flags):
 
 def update(flags):
     # Change patch before update if the user specifies a patch name
-    if flags[CMD_NEW][1] is not None:
-        patch_name = flags[CMD_NEW][1]
+    if flags[CMD_UPDATE][1] is not None:
+        patch_name = flags[CMD_UPDATE][1]
         found_patch = False
         active_ws = pcfg.get_active_workspace()
         for p in (CONFIG_DIR / active_ws / PATCH_DIR).iterdir():
@@ -246,6 +246,11 @@ def config(flags):
     
     print(f"Successfully configured {pcfg.get_active_workspace()}. Tracking {num_tracking} files.")
 
+
+def patch(flags):
+    if flags[CMD_PATCH][1] is None:
+        print("ERROR -> Missing Required Argument: No file extensions provided.")
+        return
 
 
 def main():

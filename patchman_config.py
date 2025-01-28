@@ -115,4 +115,7 @@ class PatchDatabase:
         self.entries[file] = timestamp
     
     def has_file_updated(self, file, timestamp):
+        if file not in self.entries:
+            return True
+        
         return self.entries[file] < timestamp
